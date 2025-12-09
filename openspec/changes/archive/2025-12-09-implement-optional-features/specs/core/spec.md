@@ -1,8 +1,4 @@
-# core Specification
-
-## Purpose
-TBD - created by archiving change init-todo-project. Update Purpose after archive.
-## Requirements
+## MODIFIED Requirements
 ### Requirement: Todo Management
 The system SHALL provide capabilities to manage Todo items with rich metadata.
 
@@ -23,6 +19,7 @@ The system SHALL provide capabilities to manage Todo items with rich metadata.
 - **WHEN** a user deletes a Todo
 - **THEN** the Todo item is removed from persistence
 
+## ADDED Requirements
 ### Requirement: Natural Language Parsing
 The system SHALL be able to interpret natural language strings to populate task attributes.
 

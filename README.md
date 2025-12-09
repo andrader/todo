@@ -4,9 +4,11 @@ A simple personal Todo application built with Python and Streamlit for local tas
 
 ## Features
 - **Task Management**: Create, Read, Update, Delete (CRUD) tasks.
-- **Details**: Support for Task Title and optional Description.
+- **Rich Details**: Support for Title, Description, **Due Dates**, **Priority**, and **Categories**.
+- **Smart Input**: **Natural Language Processing (NLP)** allows adding tasks like "Buy milk tomorrow !high #personal".
 - **Status**: Mark tasks as Completed or Active.
-- **Filtering**: View All, Active, or Completed tasks.
+- **Advanced Filtering**: Filter by Status, **Search**, **Priority**, and **Category**.
+- **Sorting**: Smart sorting by status, due date, and priority.
 - **Persistence**: Data is saved locally using SQLite (`todo.db`), surviving restarts.
 - **Validation**: Robust data handling with Pydantic.
 
@@ -53,21 +55,19 @@ uv run ruff check .
 ## Scope & Known Limitations
 
 **Implemented Features:**
-- ✅ Create tasks (Title + Description)
-- ✅ List tasks
+- ✅ Create tasks (Title, Description, Due Date, Priority, Category)
+- ✅ List tasks with sorting
 - ✅ Mark as completed/active
-- ✅ Edit tasks (Title + Description)
+- ✅ Edit tasks (All fields)
 - ✅ Delete tasks
 - ✅ Persistence (SQLite)
-- ✅ Task Filtering (All/Active/Completed)
+- ✅ Advanced Filtering (Search, Status, Priority, Category)
+- ✅ Natural Language Input (Quick Add)
 - ✅ Unit Tests & CI/CD
 
-**Not Implemented (Optional):**
-- ❌ Due dates / reminders
-- ❌ Priority or tags
-- ❌ Search bar (Filtering provided instead)
-- ❌ Categories or grouping
-- ❌ Natural-language input
+**Not Implemented:**
+- ❌ Keyboard shortcuts (Native browser/form submission supported, but no global hotkeys)
+- ❌ Drag-and-drop reordering
 
 **Limitations:**
 - Local storage only (SQLite file created in the running directory).

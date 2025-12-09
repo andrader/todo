@@ -1,8 +1,4 @@
-# ui Specification
-
-## Purpose
-TBD - created by archiving change complete-assessment-requirements. Update Purpose after archive.
-## Requirements
+## MODIFIED Requirements
 ### Requirement: Task Filtering
 The UI SHALL provide comprehensive filtering capabilities for the task list.
 
@@ -30,6 +26,7 @@ The UI SHALL provide a mechanism to edit existing tasks' details.
 - **THEN** the form allows modifying title, description, due date, priority, and category
 - **AND** saving the changes updates the persisted task
 
+## ADDED Requirements
 ### Requirement: Quick Add
 The UI SHALL provide a quick entry mechanism using natural language.
 

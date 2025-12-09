@@ -1,7 +1,9 @@
 import streamlit as st
+from datetime import datetime
 from todo.repository import TodoRepository
 from todo.db import init_db
-from todo.models import TodoCreate, TodoUpdate
+from todo.models import TodoCreate, TodoUpdate, Priority
+from todo.nlp import parse_task_input
 
 st.set_page_config(page_title="Todo App", layout="centered")
 st.title("Todo App")
@@ -13,38 +15,105 @@ if "repo" not in st.session_state:
 
 repo = st.session_state.repo
 
-# --- Sidebar / Top Actions ---
+# --- Sidebar Filters ---
+st.sidebar.header("Filters")
+search_query = st.sidebar.text_input("Search", help="Search by title")
+status_filter = st.sidebar.radio("Status", ["All", "Active", "Completed"], index=1)
+priority_filter = st.sidebar.multiselect("Priority", [p.value for p in Priority])
+category_filter = st.sidebar.text_input("Category", help="Filter by category name")
 
-# Filter
-filter_option = st.radio(
-    "Filter Tasks:",
-    ["All", "Active", "Completed"],
-    horizontal=True
-)
-
-st.divider()
+st.sidebar.divider()
+st.sidebar.markdown("### Tips")
+st.sidebar.info("Quick Add supports natural language!\n\nExample: 'Buy milk tomorrow !high #personal'")
 
 # --- Add Todo ---
 st.subheader("Add New Task")
-with st.form("add_todo"):
-    new_title = st.text_input("Title")
-    new_desc = st.text_area("Description (optional)")
-    submitted = st.form_submit_button("Add Task")
-    if submitted and new_title:
-        repo.add_todo(TodoCreate(title=new_title, description=new_desc if new_desc else None))
-        st.success("Task added!")
-        st.rerun()
+add_tab1, add_tab2 = st.tabs(["Quick Add (NLP)", "Detailed Form"])
+
+with add_tab1:
+    with st.form("quick_add"):
+        nlp_text = st.text_input("Describe your task...")
+        submitted_quick = st.form_submit_button("Add Task")
+        if submitted_quick and nlp_text:
+            parsed = parse_task_input(nlp_text)
+            if parsed["title"]:
+                repo.add_todo(TodoCreate(
+                    title=parsed["title"],
+                    due_date=parsed["due_date"],
+                    priority=parsed["priority"],
+                    category=parsed["category"]
+                ))
+                st.success("Task added!")
+                st.rerun()
+            else:
+                st.error("Could not extract a valid task title.")
+
+with add_tab2:
+    with st.form("detailed_add"):
+        new_title = st.text_input("Title")
+        new_desc = st.text_area("Description (optional)")
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            new_prio = st.selectbox("Priority", [p for p in Priority], format_func=lambda x: x.value, index=1) # Medium default
+        with col2:
+            new_cat = st.text_input("Category (optional)")
+        with col3:
+            new_due = st.date_input("Due Date", value=None)
+            
+        submitted_detail = st.form_submit_button("Add Task")
+        if submitted_detail and new_title:
+            # Convert date to datetime (start of day) if provided
+            due_dt = None
+            if new_due:
+                due_dt = datetime.combine(new_due, datetime.min.time())
+                
+            repo.add_todo(TodoCreate(
+                title=new_title, 
+                description=new_desc if new_desc else None,
+                priority=new_prio,
+                category=new_cat if new_cat else None,
+                due_date=due_dt
+            ))
+            st.success("Task added!")
+            st.rerun()
 
 st.divider()
 
 # --- List Todos ---
 todos = repo.get_todos()
 
-# Apply Filter
-if filter_option == "Active":
+# 1. Status Filter
+if status_filter == "Active":
     todos = [t for t in todos if not t.completed]
-elif filter_option == "Completed":
+elif status_filter == "Completed":
     todos = [t for t in todos if t.completed]
+
+# 2. Search Filter
+if search_query:
+    todos = [t for t in todos if search_query.lower() in t.title.lower() or (t.description and search_query.lower() in t.description.lower())]
+
+# 3. Priority Filter
+if priority_filter:
+    todos = [t for t in todos if t.priority.value in priority_filter]
+
+# 4. Category Filter
+if category_filter:
+    todos = [t for t in todos if t.category and category_filter.lower() in t.category.lower()]
+
+# Sorting
+# Sort order: Active first, then Overdue/Soonest Due Date, then Priority (High>Med>Low)
+prio_order = {Priority.HIGH: 0, Priority.MEDIUM: 1, Priority.LOW: 2}
+
+def sort_key(t):
+    # Tuple sorting:
+    # 1. Completed (False < True) -> Active first
+    # 2. Due Date (None is considered "far future" so tasks with dates appear first? Or last? 
+    #    Let's put tasks with due dates first among active tasks.)
+    #    Actually, `datetime.max` for None puts them last.
+    due = t.due_date if t.due_date else datetime.max
+    return (t.completed, due, prio_order[t.priority])
+
+todos.sort(key=sort_key)
 
 st.subheader(f"Tasks ({len(todos)})")
 
@@ -52,44 +121,82 @@ if not todos:
     st.info("No tasks found.")
 
 for todo in todos:
-    # Use an expander for each task to keep the main list clean
-    # The label includes the status icon and title
+    # Visual cues
     status_icon = "✅" if todo.completed else "⬜"
-    expander_label = f"{status_icon} {todo.title}"
+    
+    # Priority Badge
+    prio_icon = ""
+    if todo.priority == Priority.HIGH:
+        prio_icon = "🔴"
+    elif todo.priority == Priority.MEDIUM:
+        prio_icon = "🟡"
+    elif todo.priority == Priority.LOW:
+        prio_icon = "🔵"
+        
+    # Due Date Text
+    due_str = ""
+    if todo.due_date:
+        # Check if overdue
+        is_overdue = not todo.completed and todo.due_date < datetime.now()
+        date_fmt = todo.due_date.strftime("%Y-%m-%d")
+        if is_overdue:
+            due_str = f"⚠️ Due: {date_fmt}"
+        else:
+            due_str = f"📅 {date_fmt}"
+            
+    cat_str = f"🏷️ {todo.category}" if todo.category else ""
+    
+    # Label construction
+    label_parts = [status_icon, prio_icon, todo.title]
+    if due_str:
+        label_parts.append(f"[{due_str}]")
+    if cat_str:
+        label_parts.append(f"[{cat_str}]")
+        
+    expander_label = " ".join(part for part in label_parts if part)
     
     with st.expander(expander_label):
-        # Edit Form inside the expander
         with st.form(key=f"edit_form_{todo.id}"):
-            # Completion Status
-            is_completed = st.checkbox("Completed", value=todo.completed, key=f"check_{todo.id}")
+            # Edit fields
+            col_a, col_b = st.columns([1, 3])
+            with col_a:
+                 e_completed = st.checkbox("Completed", value=todo.completed, key=f"chk_{todo.id}")
+            with col_b:
+                 e_title = st.text_input("Title", value=todo.title, key=f"tit_{todo.id}")
             
-            # Editable Fields
-            edit_title = st.text_input("Title", value=todo.title, key=f"title_{todo.id}")
-            edit_desc = st.text_area("Description", value=todo.description or "", key=f"desc_{todo.id}")
+            e_desc = st.text_area("Description", value=todo.description or "", key=f"dsc_{todo.id}")
             
-            col1, col2 = st.columns([1, 1])
-            with col1:
-                update_submitted = st.form_submit_button("Update Task")
-            with col2:
-                # We can't put a button inside a form that isn't a submit button easily if we want specific logic
-                # So we make Delete a separate button outside or handle it carefully.
-                # Actually, standard Streamlit forms only have one submit. 
-                # Let's put Delete OUTSIDE the form but inside the expander.
-                pass
-        
-        if update_submitted:
-            repo.update_todo(
-                todo.id, 
-                TodoUpdate(
-                    title=edit_title, 
-                    description=edit_desc if edit_desc else None, 
-                    completed=is_completed
-                )
-            )
-            st.success("Updated!")
-            st.rerun()
+            c1, c2, c3 = st.columns(3)
+            with c1:
+                e_prio = st.selectbox("Priority", [p for p in Priority], format_func=lambda x: x.value, index=[p for p in Priority].index(todo.priority), key=f"pri_{todo.id}")
+            with c2:
+                e_cat = st.text_input("Category", value=todo.category or "", key=f"cat_{todo.id}")
+            with c3:
+                # date_input needs date object, due_date is datetime
+                default_date = todo.due_date.date() if todo.due_date else None
+                e_due = st.date_input("Due Date", value=default_date, key=f"due_{todo.id}")
 
-        # Delete Button (Outside form to avoid form submission confusion)
+            update_btn = st.form_submit_button("Save Changes")
+            
+            if update_btn:
+                new_due_dt = None
+                if e_due:
+                    new_due_dt = datetime.combine(e_due, datetime.min.time())
+                
+                repo.update_todo(
+                    todo.id,
+                    TodoUpdate(
+                        title=e_title,
+                        description=e_desc if e_desc else None,
+                        completed=e_completed,
+                        priority=e_prio,
+                        category=e_cat if e_cat else None,
+                        due_date=new_due_dt
+                    )
+                )
+                st.success("Updated!")
+                st.rerun()
+
         if st.button("Delete Task", key=f"del_{todo.id}", type="primary"):
             repo.delete_todo(todo.id)
             st.rerun()

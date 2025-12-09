@@ -1,4 +1,4 @@
-Time spent: ~60 minutes
+Time spent: ~90 minutes (Original ~60 + Extended Features)
 AI tools used: Cursor (Agent mode with gemini-3-pro-preview + OpenSpec framework)
 Features implemented:
 - Create tasks (Title, Description)
@@ -10,13 +10,14 @@ Features implemented:
 - Filtering (All, Active, Completed)
 - CI/CD (GitHub Actions)
 - Unit Tests
+- Due dates / reminders
+- Priority levels
+- Search
+- Categories
+- Natural language input ("Quick Add")
 Features not implemented:
-- Due dates / reminders (Optional, out of time scope)
-- Priority or tags (Optional, out of time scope)
-- Search (Optional, Filtering implemented instead)
-- Categories (Optional, out of time scope)
-- Natural language input (Optional, out of time scope)
-Time constraints: Adhered to ~60 min coding expectation.
+- Keyboard shortcuts (Partial support via standard form submission)
+- Drag-and-drop reordering
+Time constraints: Extended to implement optional "nice-to-have" features.
 Out of scope: Authentication, Remote Database, Multi-user support.
-Potential future improvements: Add due dates and a calendar view; add drag-and-drop reordering.
-
+Potential future improvements: Add a calendar view; add drag-and-drop reordering; push notifications for overdue tasks.
