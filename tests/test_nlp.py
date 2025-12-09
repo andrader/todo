@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime
 from todo.nlp import parse_task_input
 from todo.models import Priority
 
