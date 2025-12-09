@@ -12,7 +12,9 @@ def test_todo_create_valid():
 
 def test_todo_create_with_optional_fields():
     dt = datetime(2025, 12, 25)
-    todo = TodoCreate(title="Task", priority=Priority.HIGH, due_date=dt, category="Work")
+    todo = TodoCreate(
+        title="Task", priority=Priority.HIGH, due_date=dt, category="Work"
+    )
     assert todo.priority == Priority.HIGH
     assert todo.due_date == dt
     assert todo.category == "Work"

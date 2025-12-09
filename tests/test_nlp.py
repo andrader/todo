@@ -40,4 +40,3 @@ def test_parse_combined():
     assert res["category"] == "groceries"
     assert res["due_date"] is not None
     assert res["title"] == "Buy milk"
-

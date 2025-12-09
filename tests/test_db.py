@@ -30,10 +30,12 @@ def test_add_todo(repo):
 
 
 def test_add_todo_with_fields(repo):
-    todo = repo.add_todo(TodoCreate(title="Full Task", priority=Priority.LOW, category="Home"))
+    todo = repo.add_todo(
+        TodoCreate(title="Full Task", priority=Priority.LOW, category="Home")
+    )
     assert todo.priority == Priority.LOW
     assert todo.category == "Home"
-    
+
     in_db = repo.get_todo(todo.id)
     assert in_db.priority == Priority.LOW
     assert in_db.category == "Home"
@@ -41,7 +43,9 @@ def test_add_todo_with_fields(repo):
 
 def test_update_todo(repo):
     todo = repo.add_todo(TodoCreate(title="Original"))
-    updated = repo.update_todo(todo.id, TodoUpdate(title="Updated", completed=True, priority=Priority.HIGH))
+    updated = repo.update_todo(
+        todo.id, TodoUpdate(title="Updated", completed=True, priority=Priority.HIGH)
+    )
 
     assert updated.title == "Updated"
     assert updated.completed is True
