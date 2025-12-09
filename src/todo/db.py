@@ -1,5 +1,14 @@
 import sqlite3
 from contextlib import contextmanager
+from datetime import datetime
+
+
+# Register adapter for datetime to avoid DeprecationWarning in Python 3.12+
+def adapt_datetime(dt):
+    return dt.isoformat(" ")
+
+
+sqlite3.register_adapter(datetime, adapt_datetime)
 
 DB_NAME = "todo.db"
 
