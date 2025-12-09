@@ -40,16 +40,34 @@ The app will open in your default browser (usually at `http://localhost:8501`).
 
 ## Development
 
+### Makefile Commands
+The project includes a `Makefile` to simplify common development tasks:
+
+- `make install`: Install dependencies using `uv sync`.
+- `make test`: Run the test suite.
+- `make lint`: Check for linting errors.
+- `make lint-fix`: Check and automatically fix linting errors.
+- `make format`: Format code using `ruff`.
+- `make all`: Run formatting, lint fixing, and tests in sequence.
+
 ### Run Tests
 Execute the test suite using `pytest`:
 ```bash
 uv run pytest
+```
+or simply:
+```bash
+make test
 ```
 
 ### Linting
 Check code quality with `ruff`:
 ```bash
 uv run ruff check .
+```
+or:
+```bash
+make lint
 ```
 
 ## Scope & Known Limitations
