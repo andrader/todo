@@ -1,4 +1,4 @@
-Time spent: ~90 minutes (Original ~60 + Extended Features)
+Time spent: 50/60 minutes
 AI tools used: Cursor (Agent mode with gemini-3-pro-preview + OpenSpec framework)
 Features implemented:
 - Create tasks (Title, Description)
@@ -18,6 +18,6 @@ Features implemented:
 Features not implemented:
 - Keyboard shortcuts (Partial support via standard form submission)
 - Drag-and-drop reordering
-Time constraints: Extended to implement optional "nice-to-have" features.
+Time constraints: due to limited time, did not focus on the UI/UX.
 Out of scope: Authentication, Remote Database, Multi-user support.
 Potential future improvements: Add a calendar view; add drag-and-drop reordering; push notifications for overdue tasks.
